@@ -1,7 +1,12 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [],
+    "beforeFiles": [
+      {
+        "source": "/fraudkick-site//_next/:path+",
+        "destination": "/fraudkick-site/_next/:path+"
+      }
+    ],
     "fallback": []
   },
   "sortedPages": [
