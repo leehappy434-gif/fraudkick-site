@@ -1,0 +1,31 @@
+cd "C:\Users\Ben\Desktop\fraudkick-site\app\components"
+
+# 創建一個簡單的測試版本，確保編碼正確
+@'
+'use client';
+
+import React, { useState, useRef } from 'react';
+import './FukickPage.css';
+
+const FukickPage: React.FC = () => {
+  return (
+    <div style={{ padding: "50px", textAlign: "center" }}>
+      <h1 style={{ color: "#fb7185" }}>🎯 伏Kick 測試成功！</h1>
+      <p>香港首個消費消息資料庫</p>
+      <p>如果看到這個訊息，表示組件已正確加載。</p>
+    </div>
+  );
+};
+
+export default FukickPage;
+'@ | Out-File -FilePath "FukickPage.tsx" -Encoding UTF8
+
+# 創建 CSS 文件
+@'
+/* 測試樣式 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+'@ | Out-File -FilePath "FukickPage.css" -Encoding UTF8

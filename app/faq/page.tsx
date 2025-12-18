@@ -1,0 +1,1203 @@
+'use client';
+
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+
+export default function FAQPage() {
+  // FAQ 状态
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  // 法律文档模态框状态
+  const [showLegalModal, setShowLegalModal] = useState<boolean>(false);
+  const [legalContent, setLegalContent] = useState<string>("");
+  const [legalTitle, setLegalTitle] = useState<string>("");
+  
+  // 回到顶部按钮状态
+  const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+  
+  // FAQ 数据
+  const faqData = {
+    account: [
+      {
+        id: "account-1",
+        question: "Q1：我要提供咩資料先可以報料？",
+        answer: "A：最少要俾電話或Email（用於確認身份 + 平台聯絡你），內容會完全匿名（你嘅名字、電話唔會公開）。"
+      },
+      {
+        id: "account-2",
+        question: "Q2：我嘅個人資料會唔會被洩露？",
+        answer: "A：唔會。伏Kick遵守香港《個人資料（私隱）條例》：\n\n• 你提供嘅電話 / Email 唔會公開顯示，只供平台內部使用\n• 你嘅報料內容會完全匿名顯示（例如「用戶A」）\n• 如果發現任何洩露，我哋會立即通知你\n\n你可以隨時PM平台要求刪除你嘅個人資料。"
+      },
+      {
+        id: "account-3",
+        question: "Q3：我可以用假名報料嗎？",
+        answer: "A：可以。我哋唔驗證你真實身份，但如果被報料方要求證實報料真偽，你可能要提供完整證據（例如收據、聊天記錄）。如證明虛假，平台會刪帖。"
+      },
+      {
+        id: "account-4",
+        question: "Q4：點樣修改或刪除我嘅報料？",
+        answer: "A：報料發佈後，你可以透過PM平台提出要求，註明「報料ID」。我哋會喺 7-14 工作日內審核並回覆。理由可以係：\n\n• 「已解決，唔需要再提示其他人」\n• 「發現內容有誤」\n• 「商戶已退款，事件完結」"
+      }
+    ],
+    report: [
+      {
+        id: "report-1",
+        question: "Q5：點樣知道我嘅報料被接受定拒絕？",
+        answer: "A：\n\n✅ 已接受 - 收到「確認Email」，個案出現喺伏Kick網站\n❌ 被拒絕 - 收到「拒絕Email」，會簡要說明原因（例如「內容過於情緒化」「缺乏事實根據」）並邀請你修改後重新提交\n⏳ 審核中 - 一般 3-7 工作日，複雜個案可能更長"
+      },
+      {
+        id: "report-2",
+        question: "Q6：如果我個報料被拒絕，點樣上訴？",
+        answer: "A：可以回覆拒絕Email，清楚解釋點樣修改咗內容或提供更多證據。平台會再審一次，一般會喺 5-10 工作日內再次回覆。"
+      },
+      {
+        id: "report-3",
+        question: "Q7：我發現個報料有誤，想修改？",
+        answer: "A：已發佈嘅報料唔可以自己編輯，但可以PM平台要求「修訂」。提供新版本內容，我哋會審核後更新。建議附上「修改原因」（例如「日期寫錯」「補充新資訊」）。"
+      }
+    ],
+    merchant: [
+      {
+        id: "merchant-1",
+        question: "Q12：我係被報料的商戶，點樣回應？",
+        answer: "A：\n\n1. 搵到你嘅報料頁面\n2. 按「商戶回應」按鈕，申請開設「官方帳戶」（免費）\n3. 提供你嘅商戶資料 + 營業執照副本作驗證\n4. 審核通過後，可以喺該報料下方發表官方回應\n\n回應內容應包括：澄清事實、提供你嘅版本說法、解決方案（例如已退款、已改善）、聯絡方式（Email / 電話，方便進一步協調）。"
+      },
+      {
+        id: "merchant-2",
+        question: "Q13：我係商戶，想刪除某一宗報料，點樣做？",
+        answer: "A：\n\n• 按「報料有疑問」申請，提供理由 + 證據（例如「報料日期錯誤，該日期店鋪冇開門」）\n• 附上商戶證明文件（例如營業時間表、監控記錄、交易紀錄）\n• 平台會喺 7-14 工作日內審核\n• 如確實虛假，會刪除；如難以判斷，會保留但標示「商戶有異議」"
+      }
+    ],
+    platform: [
+      {
+        id: "platform-1",
+        question: "Q15：伏Kick 係免費的嗎？",
+        answer: "A：當前完全免費。未來可能會推出：\n\n• 進階搜尋功能（付費）\n• 商戶風險報告（付費）\n• 廣告位（付費）\n\n但現有所有免費功能會永久免費，唔會收費。"
+      },
+      {
+        id: "platform-2",
+        question: "Q16：伏Kick 點樣搵錢維持營運？",
+        answer: "A：長期計劃包括：\n\n• 向商戶收費（聲譽管理服務）\n• 向投資者 / 保險公司賣行業數據報告\n• 廣告合作（好心商家、法律顧問等）\n\n當前全靠志願、慢慢建立。如果你想支持，可以多分享個平台😊"
+      }
+    ],
+    legal: [
+      {
+        id: "legal-1",
+        question: "Q21：如果我報料嘅商戶起訴我誹謗，伏Kick 會唔會幫我？",
+        answer: "A：唔會。伏Kick係中立平台，唔參與任何法律訴訟。你需要自行處理法律責任。建議：\n\n• 保留所有證據\n• 聯絡法律顧問\n• 向警方 / 消委會舉報（如涉及詐騙）"
+      },
+      {
+        id: "legal-2",
+        question: "Q22：伏Kick 對報料內容有冇法律責任？",
+        answer: "A：伏Kick唔保證報料內容真實性，用戶自行承責。但伏Kick會：\n\n• 移除明顯虛假 / 誹謗內容\n• 遵守《個人資料（私隱）條例》\n• 遵從法院刪帖命令\n\n詳見「免責聲明」。"
+      }
+    ]
+  };
+
+  // 法律文档内容
+  const legalDocuments = {
+    privacy: {
+      title: "私隱政策",
+      content: `
+        <h2 class="legal-title">私隱政策</h2>
+        <div class="legal-section">
+          <h3>1. 收集個人資料聲明</h3>
+          <p>伏Kick尊重用戶隱私，承諾遵守香港《個人資料（私隱）條例》。我們收集的個人資料僅用於：</p>
+          <ul>
+            <li>處理用戶報料申請</li>
+            <li>驗證用戶身份以防止濫用</li>
+            <li>與用戶溝通關於其報料狀態</li>
+            <li>改善平台服務質素</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>2. 資料收集範圍</h3>
+          <p>我們可能收集以下資料：</p>
+          <ul>
+            <li>聯絡方式（電郵地址、電話號碼）</li>
+            <li>報料內容及相關證據</li>
+            <li>瀏覽紀錄及使用數據（匿名）</li>
+            <li>設備信息（IP地址、瀏覽器類型）</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>3. 資料使用及披露</h3>
+          <p>我們承諾：</p>
+          <ul>
+            <li>不會出售或出租用戶個人資料</li>
+            <li>報料內容會匿名處理</li>
+            <li>只在法律要求或保護權利時披露資料</li>
+            <li>與第三方服務商分享資料時會確保其遵守私隱條例</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>4. 資料保留及刪除</h3>
+          <p>用戶可隨時要求：</p>
+          <ul>
+            <li>查閱其個人資料</li>
+            <li>更正不準確資料</li>
+            <li>刪除其個人資料（除法律要求保留外）</li>
+          </ul>
+          <p>請電郵至 contact@fraudkick.hk 提出相關要求。</p>
+        </div>
+        <div class="legal-section">
+          <h3>5. 資料安全</h3>
+          <p>我們採取合理措施保護用戶資料，包括加密傳輸、安全存儲及訪問控制。</p>
+        </div>
+        <div class="legal-section">
+          <h3>6. 政策更新</h3>
+          <p>本政策可能會不時更新，請定期查閱。最後更新日期：2025年12月。</p>
+        </div>
+      `
+    },
+    terms: {
+      title: "使用條款",
+      content: `
+        <h2 class="legal-title">使用條款</h2>
+        <div class="legal-section">
+          <h3>1. 接受條款</h3>
+          <p>使用伏Kick即表示您同意遵守本使用條款。如不同意，請勿使用本平台。</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. 服務描述</h3>
+          <p>伏Kick是一個消費資訊分享平台，允許用戶：</p>
+          <ul>
+            <li>提交消費報料及相關證據</li>
+            <li>瀏覽其他用戶的報料</li>
+            <li>參與討論（如功能開放）</li>
+            <li>舉報不當內容</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>3. 用戶責任</h3>
+          <p>用戶承諾：</p>
+          <ul>
+            <li>提供真實、準確的資訊</li>
+            <li>不提交虛假、誹謗或誤導性內容</li>
+            <li>不侵犯他人知識產權或私隱權</li>
+            <li>不從事任何非法活動</li>
+            <li>不試圖破壞平台安全或功能</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>4. 內容審核</h3>
+          <p>伏Kick保留權利：</p>
+          <ul>
+            <li>審核所有提交內容</li>
+            <li>拒絕或刪除不當內容</li>
+            <li>暫停或終止違規用戶帳戶</li>
+            <li>配合執法機關要求</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>5. 知識產權</h3>
+          <p>平台內容（除用戶提交內容外）屬伏Kick所有。用戶保留其提交內容的版權，但授予伏Kick使用、展示及分發的權利。</p>
+        </div>
+        <div class="legal-section">
+          <h3>6. 免責聲明</h3>
+          <p>平台僅提供資訊分享服務，不對內容真實性負責。用戶應自行判斷資訊可信度。</p>
+        </div>
+        <div class="legal-section">
+          <h3>7. 條款修改</h3>
+          <p>伏Kick可隨時修改條款，修改後繼續使用即表示接受新條款。</p>
+        </div>
+      `
+    },
+    disclaimer: {
+      title: "免責聲明",
+      content: `
+        <h2 class="legal-title">免責聲明</h2>
+        <div class="legal-section">
+          <h3>1. 平台性質</h3>
+          <p>伏Kick是一個用戶生成內容的平台，所有報料均由用戶提交。平台本身不創建、驗證或保證任何報料內容的真實性、準確性或完整性。</p>
+        </div>
+        <div class="legal-section">
+          <h3>2. 不具法律效力</h3>
+          <p>本平台內容不構成法律意見、專業建議或官方聲明。用戶應諮詢相關專業人士（如律師、消費者委員會）以獲取正式建議。</p>
+        </div>
+        <div class="legal-section">
+          <h3>3. 內容責任</h3>
+          <p>提交報料的用戶需對其內容負全部責任。伏Kick不對以下情況負責：</p>
+          <ul>
+            <li>報料內容的真實性或準確性</li>
+            <li>因依賴報料內容而導致的任何損失或損害</li>
+            <li>用戶之間的糾紛或法律訴訟</li>
+            <li>第三方對報料內容的反應或行動</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>4. 商戶回應</h3>
+          <p>商戶回應僅代表該商戶觀點，伏Kick不對其內容負責。平台不偏袒任何一方，僅提供溝通渠道。</p>
+        </div>
+        <div class="legal-section">
+          <h3>5. 技術免責</h3>
+          <p>伏Kick不保證：</p>
+          <ul>
+            <li>平台永遠不間斷或無錯誤運作</li>
+            <li>所有缺陷將被修正</li>
+            <li>平台或伺服器不受病毒或其他有害組件影響</li>
+          </ul>
+        </div>
+        <div class="legal-section">
+          <h3>6. 第三方連結</h3>
+          <p>平台可能包含第三方網站連結，這些連結僅為方便提供。伏Kick不對這些網站的內容或隱私實踐負責。</p>
+        </div>
+        <div class="legal-section">
+          <h3>7. 責任限制</h3>
+          <p>在法律允許的最大範圍內，伏Kick及其員工、代理不對因使用或無法使用平台而導致的任何間接、附帶、特殊或後果性損害負責。</p>
+        </div>
+        <div class="legal-section">
+          <h3>8. 法律管轄</h3>
+          <p>本免責聲明受香港法律管轄並據其解釋。任何爭議應提交香港法院專屬管轄。</p>
+        </div>
+        <div class="info-box">
+          <strong>重要提示</strong>
+          <p>使用本平台即表示您理解並接受：您應自行核實任何報料內容的真實性，並對依賴這些內容所做的決定承擔全部責任。如遇消費糾紛，請聯絡香港消費者委員會（電話：2929 2222）或尋求法律建議。</p>
+        </div>
+      `
+    }
+  };
+
+  // 处理FAQ展开/收起
+  const toggleFAQ = (id: string) => {
+    if (expandedFAQ === id) {
+      setExpandedFAQ(null);
+    } else {
+      setExpandedFAQ(id);
+    }
+  };
+
+  // 处理分类切换
+  const handleCategoryClick = (category: string) => {
+    setActiveCategory(category);
+    setExpandedFAQ(null); // 切换分类时关闭所有FAQ
+  };
+
+  // 处理搜索
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const results: any[] = [];
+
+    // 搜索所有FAQ
+    Object.entries(faqData).forEach(([category, items]) => {
+      items.forEach(item => {
+        if (
+          item.question.toLowerCase().includes(query) || 
+          item.answer.toLowerCase().includes(query)
+        ) {
+          results.push({ ...item, category });
+        }
+      });
+    });
+
+    setSearchResults(results);
+  }, [searchQuery]);
+
+  // 显示法律文档
+  const showLegalDocument = (type: 'privacy' | 'terms' | 'disclaimer') => {
+    const doc = legalDocuments[type];
+    setLegalTitle(doc.title);
+    setLegalContent(doc.content);
+    setShowLegalModal(true);
+  };
+
+  // 处理滚动显示回到顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 回到顶部
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 渲染FAQ项目
+  const renderFAQItem = (item: any, category: string) => {
+    const isExpanded = expandedFAQ === item.id;
+    
+    return (
+      <div key={item.id} className="faq-item" data-category={category}>
+        <div 
+          className={`faq-question ${isExpanded ? 'active' : ''}`}
+          onClick={() => toggleFAQ(item.id)}
+        >
+          {item.question}
+        </div>
+        <div className={`faq-answer ${isExpanded ? 'show' : ''}`}>
+          <div className="faq-answer-content" style={{ whiteSpace: 'pre-line' }}>
+            {item.answer}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染搜索结果的FAQ
+  const renderSearchResults = () => {
+    if (searchResults.length === 0 && searchQuery.trim()) {
+      return (
+        <div className="faq-item">
+          <div className="faq-question">沒有找到相關問題</div>
+          <div className="faq-answer show">
+            <div className="faq-answer-content">
+              <p>抱歉，沒有找到與「{searchQuery}」相關的問題。</p>
+              <p>建議：</p>
+              <ul>
+                <li>檢查關鍵字是否拼寫正確</li>
+                <li>嘗試使用其他相關關鍵字</li>
+                <li>或直接<a href="mailto:contact@fraudkick.hk">聯絡我們</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return searchResults.map(result => renderFAQItem(result, result.category));
+  };
+
+  return (
+    <>
+      {/* 全局样式 */}
+      <style jsx global>{`
+        :root {
+          --bg: #f7fafc;
+          --bg-card: #ffffff;
+          --primary: #fb7185;
+          --primary-soft: #ffe4e6;
+          --accent: #38bdf8;
+          --text-main: #111827;
+          --text-soft: #4b5563;
+          --border-soft: #e2e8f0;
+          --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+          --radius-lg: 18px;
+          --radius-md: 12px;
+        }
+
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        body {
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans HK", "PingFang HK", sans-serif;
+          background: radial-gradient(circle at top, #fefce8 0, #f7fafc 40%, #e5edf5 100%);
+          color: var(--text-main);
+          -webkit-font-smoothing: antialiased;
+          font-size: 16px;
+          line-height: 1.6;
+          padding: 20px 12px 32px;
+        }
+
+        .container {
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+          padding: 8px 0 20px;
+        }
+
+        .header-row {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .header-top-line {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .header-logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .header-logo-img {
+          border-radius: 18px;
+          object-fit: contain;
+        }
+
+        .header-top-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          font-size: 1em;
+        }
+
+        .btn-top {
+          padding: 6px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(248, 113, 113, 0.4);
+          background-color: #ffffff;
+          color: #b91c1c;
+          font-size: 0.86em;
+          cursor: pointer;
+          white-space: nowrap;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          box-shadow: 0 4px 10px rgba(148, 163, 184, 0.25);
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .btn-top:hover {
+          background-color: #fff5f5;
+          transform: translateY(-1px);
+        }
+
+        /* ===== FAQ主標題 ===== */
+        .faq-header {
+          text-align: center;
+          margin: 20px 0 30px;
+          padding: 20px;
+        }
+
+        .faq-title {
+          font-size: 2.8em;
+          color: #fb7185;
+          margin: 0 0 8px;
+          letter-spacing: 0.02em;
+          font-weight: 800;
+        }
+
+        .faq-subtitle {
+          font-size: 1.3em;
+          color: var(--text-soft);
+          margin: 0 auto 20px;
+          max-width: 600px;
+          line-height: 1.5;
+        }
+
+        /* ===== FAQ搜索框 ===== */
+        .faq-search-container {
+          max-width: 600px;
+          margin: 0 auto 35px;
+        }
+
+        .faq-search-box {
+          width: 100%;
+          padding: 15px 25px;
+          border-radius: 999px;
+          border: 1px solid #cbd5e1;
+          background-color: #f9fafb;
+          font-size: 1em;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .faq-search-box input {
+          border: none;
+          outline: none;
+          background: transparent;
+          color: #0f172a;
+          font-size: 1em;
+          width: 100%;
+        }
+
+        /* ===== FAQ分類導航 ===== */
+        .faq-category-nav {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          justify-content: center;
+          margin-bottom: 40px;
+        }
+
+        .category-nav-btn {
+          padding: 10px 20px;
+          border-radius: 999px;
+          border: 1px solid rgba(248, 113, 113, 0.4);
+          background-color: #ffffff;
+          color: #b91c1c;
+          font-size: 1em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .category-nav-btn:hover,
+        .category-nav-btn.active {
+          background-color: #fb7185;
+          color: white;
+          border-color: #fb7185;
+        }
+
+        /* ===== FAQ分類區塊 ===== */
+        .faq-category-section {
+          margin-bottom: 45px;
+        }
+
+        .category-title {
+          color: #fb7185;
+          font-size: 1.6em;
+          font-weight: 700;
+          margin-bottom: 20px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #ffe4e6;
+        }
+
+        /* ===== FAQ項目 - 手風琴效果 ===== */
+        .faq-item {
+          background: rgba(255, 255, 255, 0.96);
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--border-soft);
+          box-shadow: var(--shadow-soft);
+          margin-bottom: 16px;
+          overflow: hidden;
+        }
+
+        .faq-question {
+          padding: 20px 25px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-weight: 700;
+          color: #111827;
+          transition: background-color 0.3s;
+          user-select: none;
+          font-size: 1.1em;
+        }
+
+        .faq-question:hover {
+          background-color: #fefce8;
+        }
+
+        .faq-question::after {
+          content: '+';
+          font-size: 26px;
+          font-weight: 300;
+          color: #fb7185;
+          transition: transform 0.3s;
+        }
+
+        .faq-question.active::after {
+          content: '−';
+          transform: rotate(180deg);
+        }
+
+        .faq-answer {
+          padding: 0 25px;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+          background-color: white;
+        }
+
+        .faq-answer.show {
+          padding: 0 25px 25px 25px;
+          max-height: 2000px;
+        }
+
+        .faq-answer-content {
+          color: #555;
+          line-height: 1.7;
+          font-size: 1.05em;
+        }
+
+        .faq-answer-content p {
+          margin-bottom: 15px;
+        }
+
+        .faq-answer-content ul, .faq-answer-content ol {
+          margin-left: 25px;
+          margin-bottom: 15px;
+        }
+
+        .faq-answer-content li {
+          margin-bottom: 8px;
+        }
+
+        /* ===== 特別提示框 ===== */
+        .info-box {
+          background-color: #f8f9fa;
+          border-left: 4px solid #3498db;
+          padding: 20px;
+          margin: 25px 0;
+          border-radius: 0 8px 8px 0;
+          font-size: 1.05em;
+        }
+
+        .info-box strong {
+          color: #2c3e50;
+          display: block;
+          margin-bottom: 10px;
+          font-size: 1.2em;
+        }
+
+        .warning-box {
+          background-color: #fff8e1;
+          border-left: 4px solid #f39c12;
+          padding: 20px;
+          margin: 25px 0;
+          border-radius: 0 8px 8px 0;
+          font-size: 1.05em;
+        }
+
+        .warning-box strong {
+          color: #2c3e50;
+          display: block;
+          margin-bottom: 10px;
+          font-size: 1.2em;
+        }
+
+        /* ===== 快速聯絡區 ===== */
+        .quick-contact {
+          background: linear-gradient(135deg, #fefce8 0%, #f7fafc 100%);
+          border-radius: var(--radius-lg);
+          padding: 30px;
+          margin: 50px 0;
+          border: 1px solid var(--border-soft);
+          box-shadow: var(--shadow-soft);
+          text-align: center;
+        }
+
+        .quick-contact h3 {
+          color: #fb7185;
+          margin-bottom: 20px;
+          font-size: 1.5em;
+        }
+
+        .contact-methods {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 20px;
+          margin-top: 25px;
+        }
+
+        .contact-method {
+          background: white;
+          padding: 15px 20px;
+          border-radius: 12px;
+          border: 1px solid var(--border-soft);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          min-width: 200px;
+        }
+
+        .contact-method h4 {
+          color: #fb7185;
+          margin-bottom: 10px;
+          font-size: 1.1em;
+        }
+
+        /* ===== 法律文件彈出層 ===== */
+        .legal-modal {
+          display: flex;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 1000;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .legal-content {
+          background: white;
+          border-radius: var(--radius-lg);
+          width: 90%;
+          max-width: 800px;
+          max-height: 80vh;
+          overflow-y: auto;
+          padding: 30px;
+          position: relative;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .legal-close {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: #fb7185;
+          color: white;
+          border: none;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          font-size: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s;
+        }
+
+        .legal-close:hover {
+          background: #b91c1c;
+          transform: rotate(90deg);
+        }
+
+        .legal-title {
+          color: #fb7185;
+          margin-bottom: 20px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #ffe4e6;
+        }
+
+        .legal-section {
+          margin-bottom: 25px;
+        }
+
+        .legal-section h3 {
+          color: #fb7185;
+          margin: 15px 0 10px;
+        }
+
+        /* ===== 頁腳 ===== */
+        footer {
+          text-align: center;
+          padding: 18px 8px 4px;
+          margin-top: 40px;
+          color: #6b7280;
+          font-size: 0.9em;
+          border-top: 1px solid var(--border-soft);
+        }
+
+        footer p {
+          margin: 5px 0;
+        }
+
+        /* ===== 返回頂部按鈕 ===== */
+        .back-to-top {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          background: linear-gradient(135deg, #fb7185, #f97316);
+          color: white;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 22px;
+          box-shadow: 0 8px 20px rgba(248, 113, 113, 0.45);
+          transition: all 0.3s;
+          border: none;
+          z-index: 999;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .back-to-top.show {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 25px rgba(248, 113, 113, 0.55);
+        }
+
+        /* ===== 響應式設計 ===== */
+        @media (max-width: 768px) {
+          .header-top-line {
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+          }
+
+          .header-logo-img {
+            width: 80px;
+            height: 80px;
+          }
+
+          .header-top-bar {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .faq-title {
+            font-size: 2.2em;
+          }
+
+          .faq-subtitle {
+            font-size: 1.15em;
+          }
+
+          .faq-question {
+            padding: 18px 20px;
+            font-size: 1.05em;
+          }
+
+          .category-title {
+            font-size: 1.4em;
+          }
+
+          .contact-methods {
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .contact-method {
+            width: 100%;
+            max-width: 300px;
+          }
+
+          .legal-content {
+            width: 95%;
+            padding: 20px;
+          }
+
+          .back-to-top {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          body {
+            padding: 15px 8px 25px;
+            font-size: 15px;
+          }
+
+          .header-logo-img {
+            width: 70px;
+            height: 70px;
+          }
+
+          .faq-title {
+            font-size: 1.8em;
+          }
+
+          .faq-subtitle {
+            font-size: 1.05em;
+            padding: 0 10px;
+          }
+
+          .category-title {
+            font-size: 1.3em;
+          }
+
+          .faq-question {
+            padding: 16px 18px;
+            font-size: 1em;
+          }
+
+          .faq-answer-content {
+            font-size: 1em;
+          }
+
+          .quick-contact {
+            padding: 20px 15px;
+          }
+
+          .btn-top {
+            padding: 6px 12px;
+            font-size: 0.8em;
+          }
+
+          .category-nav-btn {
+            padding: 8px 16px;
+            font-size: 0.9em;
+          }
+        }
+
+        /* ===== 高亮搜尋結果 ===== */
+        .highlight {
+          background-color: #FFE4B5;
+          padding: 2px 4px;
+          border-radius: 4px;
+        }
+
+        /* ===== 外部連結樣式 ===== */
+        a {
+          color: #fb7185;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+
+        a:hover {
+          color: #b91c1c;
+          text-decoration: underline;
+        }
+
+        .legal-link {
+          cursor: pointer;
+          color: #fb7185;
+          text-decoration: underline;
+        }
+
+        .legal-link:hover {
+          color: #b91c1c;
+        }
+      `}</style>
+
+      {/* 法律文件模态框 */}
+      {showLegalModal && (
+        <div className="legal-modal" id="legalModal">
+          <div className="legal-content">
+            <button 
+              className="legal-close" 
+              id="legalClose"
+              onClick={() => setShowLegalModal(false)}
+            >
+              ×
+            </button>
+            <div 
+              id="legalContent" 
+              dangerouslySetInnerHTML={{ __html: legalContent }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 返回顶部按钮 */}
+      <button 
+        className={`back-to-top ${showBackToTop ? 'show' : ''}`} 
+        id="backToTop"
+        onClick={scrollToTop}
+      >
+        ↑
+      </button>
+
+      <div className="container">
+        {/* ===== 頁首 ===== */}
+        <header>
+          <div className="header-row">
+            <div className="header-top-line">
+              <div className="header-logo">
+                <Image
+                  src="/logo.png"
+                  alt="伏Kick Logo"
+                  width={100}
+                  height={100}
+                  className="header-logo-img"
+                />
+              </div>
+              <div className="header-top-bar">
+                <Link href="/" className="btn-top">🏠 返回主頁</Link>
+                <Link 
+                  href="https://docs.google.com/forms/d/1iaRTo26gA1n08lJyXj_o-EK4Sv8BkY16h_lJv1e2NjU/prefill" 
+                  className="btn-top"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📝 我要報料
+                </Link>
+                <Link 
+                  href="https://docs.google.com/spreadsheets/d/1vNjD8K9lNJh7SXzQkS7L-P02xLrKJSYQ6XfL27_3L7U/edit?usp=sharing" 
+                  className="btn-top"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  🔍 瀏覽報料
+                </Link>
+                <button 
+                  className="btn-top"
+                  style={{ backgroundColor: '#fff5f5', color: '#b91c1c', fontWeight: 600 }}
+                  onClick={() => window.scrollTo(0, 0)}
+                >
+                  ❓ 常見問題
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ===== FAQ主標題 ===== */}
+        <div className="faq-header">
+          <h1 className="faq-title">常見問題</h1>
+          <p className="faq-subtitle">關於平台使用、報料流程、隱私保護等疑問，都可以搵到答案</p>
+
+          {/* ===== 搜尋框 ===== */}
+          <div className="faq-search-container">
+            <div className="faq-search-box">
+              <span>🔍</span>
+              <input 
+                type="text" 
+                id="faqSearchInput"
+                placeholder="搜尋問題關鍵字..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ===== 分類導航 ===== */}
+          <div className="faq-category-nav">
+            <button 
+              className={`category-nav-btn ${activeCategory === 'all' ? 'active' : ''}`}
+              data-category="all"
+              onClick={() => handleCategoryClick('all')}
+            >
+              全部問題
+            </button>
+            <button 
+              className={`category-nav-btn ${activeCategory === 'account' ? 'active' : ''}`}
+              data-category="account"
+              onClick={() => handleCategoryClick('account')}
+            >
+              帳戶 / 隱私
+            </button>
+            <button 
+              className={`category-nav-btn ${activeCategory === 'report' ? 'active' : ''}`}
+              data-category="report"
+              onClick={() => handleCategoryClick('report')}
+            >
+              報料流程
+            </button>
+            <button 
+              className={`category-nav-btn ${activeCategory === 'merchant' ? 'active' : ''}`}
+              data-category="merchant"
+              onClick={() => handleCategoryClick('merchant')}
+            >
+              商戶相關
+            </button>
+            <button 
+              className={`category-nav-btn ${activeCategory === 'platform' ? 'active' : ''}`}
+              data-category="platform"
+              onClick={() => handleCategoryClick('platform')}
+            >
+              平台服務
+            </button>
+            <button 
+              className={`category-nav-btn ${activeCategory === 'legal' ? 'active' : ''}`}
+              data-category="legal"
+              onClick={() => handleCategoryClick('legal')}
+            >
+              法律責任
+            </button>
+          </div>
+        </div>
+
+        {/* ===== FAQ內容區域 ===== */}
+        <div className="faq-content">
+          {/* 如果有搜索查询，显示搜索结果 */}
+          {searchQuery.trim() ? (
+            <section className="faq-category-section">
+              <h2 className="category-title">🔍 搜尋結果</h2>
+              {renderSearchResults()}
+            </section>
+          ) : (
+            <>
+              {/* 帳戶 / 隱私相關 */}
+              {(activeCategory === 'all' || activeCategory === 'account') && (
+                <section className="faq-category-section" id="account-section">
+                  <h2 className="category-title">📱 帳戶 / 隱私相關</h2>
+                  {faqData.account.map(item => renderFAQItem(item, 'account'))}
+                </section>
+              )}
+
+              {/* 報料流程相關 */}
+              {(activeCategory === 'all' || activeCategory === 'report') && (
+                <section className="faq-category-section" id="report-section">
+                  <h2 className="category-title">📝 報料流程相關</h2>
+                  {faqData.report.map(item => renderFAQItem(item, 'report'))}
+                  
+                  <div className="info-box">
+                    <strong>💡 報料小貼士</strong>
+                    <p>提交報料時，請準備好相關證據（收據、相片、對話記錄等），並提供清晰的事件經過、日期、金額和商戶資料，這將有助於加快審核過程。</p>
+                  </div>
+                </section>
+              )}
+
+              {/* 商戶相關 */}
+              {(activeCategory === 'all' || activeCategory === 'merchant') && (
+                <section className="faq-category-section" id="merchant-section">
+                  <h2 className="category-title">🏪 商戶相關</h2>
+                  {faqData.merchant.map(item => renderFAQItem(item, 'merchant'))}
+                  
+                  <div className="info-box">
+                    <strong>🏢 給商戶的建議</strong>
+                    <p>積極回應客戶報料是最好的商譽管理。透過官方回應展示解決問題的誠意，往往能贏回客戶信任。</p>
+                  </div>
+                </section>
+              )}
+
+              {/* 平台服務相關 */}
+              {(activeCategory === 'all' || activeCategory === 'platform') && (
+                <section className="faq-category-section" id="platform-section">
+                  <h2 className="category-title">🌐 平台服務相關</h2>
+                  {faqData.platform.map(item => renderFAQItem(item, 'platform'))}
+                </section>
+              )}
+
+              {/* 法律責任相關 */}
+              {(activeCategory === 'all' || activeCategory === 'legal') && (
+                <section className="faq-category-section" id="legal-section">
+                  <h2 className="category-title">⚖️ 法律責任相關</h2>
+                  {faqData.legal.map(item => renderFAQItem(item, 'legal'))}
+                  
+                  <div className="warning-box">
+                    <strong>⚠️ 免責聲明</strong>
+                    <p>伏Kick作為資訊分享平台，不保證報料內容的真實性。用戶應自行判斷，平台對任何因使用資訊而導致的損失概不負責。詳見完整版<span 
+                      className="legal-link"
+                      onClick={() => showLegalDocument('disclaimer')}
+                    >
+                      免責聲明
+                    </span>。</p>
+                  </div>
+                </section>
+              )}
+            </>
+          )}
+
+          {/* 快速聯絡區 */}
+          <section className="quick-contact">
+            <h3>仲有其他問題？</h3>
+            <p>如果FAQ未能解答你的疑問，歡迎直接聯絡我們</p>
+            <div className="contact-methods">
+              <div className="contact-method">
+                <h4>📧 電郵聯絡</h4>
+                <p>contact@fraudkick.hk</p>
+                <p style={{ fontSize: "0.85em", color: "#6b7280" }}>一般查詢：2-3個工作日回覆</p>
+              </div>
+              <div className="contact-method">
+                <h4>📱 社交媒體</h4>
+                <p>Facebook: @FraudKick_HK</p>
+                <p>Instagram: @FraudKick_HK</p>
+              </div>
+              <div className="contact-method">
+                <h4>📄 法律文件</h4>
+                <p><span className="legal-link" onClick={() => showLegalDocument('privacy')}>私隱政策</span></p>
+                <p><span className="legal-link" onClick={() => showLegalDocument('terms')}>使用條款</span></p>
+                <p><span className="legal-link" onClick={() => showLegalDocument('disclaimer')}>免責聲明</span></p>
+              </div>
+            </div>
+            <p style={{ marginTop: "20px", fontSize: "0.85em", color: "#6b7280" }}>*請勿透過社交媒體提交敏感個人資料</p>
+          </section>
+        </div>
+
+        {/* ===== 頁腳 ===== */}
+        <footer>
+          <p>🛡️ 伏Kick - 香港首個消費資料庫</p>
+          <p style={{ marginTop: "15px" }}>&copy; 2025 伏Kick 版權所有。本網站內容僅供參考，不構成法律建議。</p>
+          <p>最後更新: 2025年12月 | 版本: 1.0</p>
+        </footer>
+      </div>
+    </>
+  );
+}

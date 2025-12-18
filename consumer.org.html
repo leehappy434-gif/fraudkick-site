@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>伏Kick x 消委會 | 產品測試資料庫</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        :root {
+            --primary: #f97373;
+            --primary-soft: #ffe4e6;
+            --bg: #f7fafc;
+            --text-main: #111827;
+            --text-soft: #4b5563;
+            --border-soft: #e2e8f0;
+            --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+            --radius-lg: 18px;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans HK", "PingFang HK", sans-serif;
+            background: #f7fafc;
+            color: var(--text-main);
+            font-size: 15px;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        /* Sticky Header 容器 - 固定整個上方區域 */
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .header-title {
+            font-size: 1.8em;
+            color: var(--primary);
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .header-subtitle {
+            font-size: 0.9em;
+            color: var(--text-soft);
+            margin: 6px 0 0;
+        }
+
+        /* 圖片區域 - 在 Sticky Header 內 */
+        .header-image {
+            margin: 16px 0 0 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 120px;
+            object-fit: cover;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .filter-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 0.9em;
+            color: var(--text-main);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 12px;
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-group input {
+            cursor: text;
+        }
+
+        .btn-reset {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f97373, #f97316);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            align-self: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(249, 115, 115, 0.4);
+        }
+
+        .results-header {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: var(--primary-soft);
+            border-radius: 8px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-soft);
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: var(--primary-soft);
+            color: var(--primary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #ffd4d8;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 0.9em;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .brand-name {
+            font-size: 0.9em;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .score {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .score.high { color: #22c55e; }
+        .score.medium { color: #f59e0b; }
+        .score.low { color: #ef4444; }
+
+        .publication-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .publication-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-soft);
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-grid { grid-template-columns: 1fr; }
+            table { font-size: 0.8em; }
+            th, td { padding: 8px; }
+            .header-image img { max-height: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sticky Header 開始 - 包括標題 + 圖片 + 篩選 -->
+    <div class="sticky-top">
+        <header>
+            <h1 class="header-title">⭐ 伏Kick × 消委會 | 產品測試資料庫</h1>
+            <p class="header-subtitle">整合消委會5年測試數據｜透明評分｜一鍵查閱期刊</p>
+            
+            <!-- 圖片區域 -->
+            <div class="header-image">
+                <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/daf5dc3b-fb0f-4247-96da-147a4794411a" alt="消委會測試資料">
+            </div>
+        </header>
+
+        <div class="filter-section">
+            <h2 class="filter-title">🔍 篩選搜尋</h2>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>產品分類</label>
+                    <select id="categoryFilter">
+                        <option value="">全部分類</option>
+                        <option value="家庭電器">家庭電器</option>
+                        <option value="電子及影音">電子及影音</option>
+                        <option value="健康及美容">健康及美容</option>
+                        <option value="食物及飲品">食物及飲品</option>
+                        <option value="家居用品">家居用品</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>產品細項</label>
+                    <select id="productFilter">
+                        <option value="">全部細項</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>測試年份</label>
+                    <select id="yearFilter">
+                        <option value="">全部年份</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>評分</label>
+                    <select id="scoreFilter">
+                        <option value="">全部評分</option>
+                        <option value="5">⭐⭐⭐⭐⭐ (5.0)</option>
+                        <option value="4.5">⭐⭐⭐⭐ (4.5+)</option>
+                        <option value="4">⭐⭐⭐ (4.0+)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>品牌搜尋</label>
+                    <input id="brandFilter" type="text" placeholder="例如: DIOR, PHILIPS">
+                </div>
+            </div>
+            <button class="btn-reset" id="resetBtn">🔄 重設篩選</button>
+        </div>
+
+        <div class="results-header">
+            找到 <strong id="resultCount">0</strong> 項測試結果
+        </div>
+    </div>
+    <!-- Sticky Header 結束 -->
+
+    <div class="table-wrapper" id="tableView">
+        <table>
+            <thead>
+                <tr>
+                    <th>產品 / 品牌</th>
+                    <th>型號</th>
+                    <th>分類</th>
+                    <th onclick="sortTable(3)">評分 ↕</th>
+                    <th onclick="sortTable(4)">測試年份 ↕</th>
+                    <th>消委會期刊</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+        <div id="emptyTable" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <p>未找到符合條件的測試結果</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const testDatabase = [
+        {
+            name: "座椅式水機",
+            models: [
+                { brand: "PHILIPS", model: "ADD6972C97", category: "家庭電器", score: 3.5, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "TOSHIBA", model: "TWP-Y2350", category: "家庭電器", score: 4, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "Watsons", model: "WD1", category: "家庭電器", score: 4, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "Yohome", model: "YH-01", category: "家庭電器", score: 4, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "Rasonic", model: "RWD-HC3400W", category: "家庭電器", score: 4.5, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "Xiaomi", model: "MJHZS", category: "家庭電器", score: 4.5, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "FACHIO", model: "JNMQ-C1", category: "家庭電器", score: 4.5, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" },
+                { brand: "BRUNO", model: "BAK801", category: "家庭電器", score: 4, year: 2025, journal: "590期 (2025.12)", journalUrl: "https://www.consumer.org.hk/tc/issue/590" }
+            ]
+        },
+        {
+            name: "泥狀清潔面膜",
+            models: [
+                { brand: "KOSE", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "SHISEIDO", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "OLAY", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "LANEIGE", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "LANCOME", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "ESTÉE LAUDER", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "CLARINS", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "CETAPHIL", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "VICHY", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "其他品牌", model: "市面30款", category: "健康及美容", score: 3, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" }
+            ]
+        },
+        {
+            name: "爽膚水及化妝水",
+            models: [
+                { brand: "SK-II", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "資生堂", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "ESTÉE LAUDER", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "LANCOME", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "DIOR", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "CLARINS", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "CLINIQUE", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "KOSE", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "SHISEIDO", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" },
+                { brand: "其他品牌", model: "市面25款", category: "健康及美容", score: 4, year: 2024, journal: "587期 (2025.09)", journalUrl: "https://www.consumer.org.hk/tc/issue/587" }
+            ]
+        },
+        {
+            name: "防曬乳液",
+            models: [
+                { brand: "ANESSA", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "SUNPLAY", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "LANCOME", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "ESTÉE LAUDER", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "SHISEIDO", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "DIOR", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "CLARINS", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "KOSE", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "CETAPHIL", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "其他品牌", model: "市面25+款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" }
+            ]
+        },
+        {
+            name: "風筒",
+            models: [
+                { brand: "DYSON", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "PANASONIC", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "REVLON", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "PHILIPS", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "SHARP", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "TOSHIBA", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "BABYLISS", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "其他品牌", model: "市面13款", category: "電子及影音", score: 4, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" }
+            ]
+        },
+        {
+            name: "唇膏及唇釉",
+            models: [
+                { brand: "DIOR", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "TOM FORD", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "NARS", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "CHANEL", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "LANCOME", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "MAC", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "ESTÉE LAUDER", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "GIORGIO ARMANI", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "YSL", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "CLARINS", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "BOBBI BROWN", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "CLINIQUE", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "KOSE", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "SHISEIDO", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "資生堂", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "MAYBELLINE", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "L'ORÉAL", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "Revlon", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "RIMMEL", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" },
+                { brand: "KATE", model: "市面30款", category: "健康及美容", score: 3.5, year: 2024, journal: "588期 (2025.10)", journalUrl: "https://www.consumer.org.hk/tc/issue/588" }
+            ]
+        },
+        {
+            name: "麵粉",
+            models: [
+                { brand: "金麥", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "五豐", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "東海堂", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "三象", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "牧之鄉", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "生活", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "香雪麵粉", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "嘉頓", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "SWALLOW GLOBE", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "其他品牌", model: "市面30款", category: "食物及飲品", score: 2.5, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" }
+            ]
+        },
+        {
+            name: "行山杖",
+            models: [
+                { brand: "DECATHLON", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "FERRINO", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "BLACKDIAMOND", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "LEKI", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "SALOMON", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "SUUNTO", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "TREKKING POLE", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "其他品牌", model: "市面19款", category: "其他", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" }
+            ]
+        },
+        {
+            name: "冬季雙人被",
+            models: [
+                { brand: "無印良品", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "宜家 (IKEA)", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "淘寶", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "LANE CRAWFORD", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "CITYSUPER", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "DOCOMO", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "THREAD INTERNATIONAL", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" },
+                { brand: "其他品牌", model: "市面20款", category: "家居用品", score: 4, year: 2025, journal: "589期 (2025.11)", journalUrl: "https://www.consumer.org.hk/tc/issue/589" }
+            ]
+        }
+    ];
+
+    let flatData = testDatabase.flatMap(product =>
+        product.models.map(model => ({
+            productName: product.name,
+            ...model
+        }))
+    );
+
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productFilter = document.getElementById('productFilter');
+    const yearFilter = document.getElementById('yearFilter');
+    const scoreFilter = document.getElementById('scoreFilter');
+    const brandFilter = document.getElementById('brandFilter');
+    const resetBtn = document.getElementById('resetBtn');
+    const tableBody = document.getElementById('tableBody');
+    const resultCount = document.getElementById('resultCount');
+    
+    let sortState = {};
+
+    function renderTable(data) {
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            document.getElementById('emptyTable').style.display = 'block';
+            return;
+        }
+        document.getElementById('emptyTable').style.display = 'none';
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            const scoreClass = row.score >= 4.5 ? 'high' : row.score >= 4 ? 'medium' : 'low';
+            tr.innerHTML = `
+                <td>
+                    <div class="product-name">${row.productName}</div>
+                    <div class="brand-name">${row.brand}</div>
+                </td>
+                <td>${row.model}</td>
+                <td>${row.category}</td>
+                <td data-sort-value="${row.score}"><span class="score ${scoreClass}">${row.score.toFixed(1)} ⭐</span></td>
+                <td data-sort-value="${row.year}">${row.year}</td>
+                <td><a href="${row.journalUrl}" target="_blank" class="publication-link">${row.journal}</a></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    const productsByCategory = {
+        '家庭電器': ['座椅式水機'],
+        '電子及影音': ['風筒'],
+        '健康及美容': ['泥狀清潔面膜', '爽膚水及化妝水', '防曬乳液', '唇膏及唇釉'],
+        '食物及飲品': ['麵粉'],
+        '家居用品': ['冬季雙人被'],
+        '其他': ['行山杖']
+    };
+
+    function updateProductFilter() {
+        const category = categoryFilter.value;
+        productFilter.innerHTML = '<option value="">全部細項</option>';
+        
+        if (category && productsByCategory[category]) {
+            productsByCategory[category].forEach(product => {
+                const option = document.createElement('option');
+                option.value = product;
+                option.textContent = product;
+                productFilter.appendChild(option);
+            });
+        }
+    }
+
+    function sortTable(columnIndex) {
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+        
+        if (!sortState[columnIndex]) {
+            sortState[columnIndex] = 'asc';
+        } else {
+            sortState[columnIndex] = sortState[columnIndex] === 'asc' ? 'desc' : 'asc';
+        }
+        
+        rows.sort((a, b) => {
+            const aValue = a.children[columnIndex].getAttribute('data-sort-value') || a.children[columnIndex].textContent;
+            const bValue = b.children[columnIndex].getAttribute('data-sort-value') || b.children[columnIndex].textContent;
+            
+            let aNum = parseFloat(aValue);
+            let bNum = parseFloat(bValue);
+            
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return sortState[columnIndex] === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+            
+            return sortState[columnIndex] === 'asc' 
+                ? aValue.localeCompare(bValue, 'zh-HK')
+                : bValue.localeCompare(aValue, 'zh-HK');
+        });
+        
+        rows.forEach(row => tableBody.appendChild(row));
+    }
+
+    function applyFilters() {
+        let filtered = flatData.filter(row => {
+            const categoryMatch = !categoryFilter.value || row.category === categoryFilter.value;
+            const productMatch = !productFilter.value || row.productName === productFilter.value;
+            const yearMatch = !yearFilter.value || row.year.toString() === yearFilter.value;
+            const scoreMatch = !scoreFilter.value || row.score >= parseFloat(scoreFilter.value);
+            const brandMatch = !brandFilter.value || row.brand.toLowerCase().includes(brandFilter.value.toLowerCase());
+            
+            return categoryMatch && productMatch && yearMatch && scoreMatch && brandMatch;
+        });
+
+        resultCount.textContent = filtered.length;
+        renderTable(filtered);
+    }
+
+    categoryFilter.addEventListener('change', () => {
+        updateProductFilter();
+        applyFilters();
+    });
+    productFilter.addEventListener('change', applyFilters);
+    yearFilter.addEventListener('change', applyFilters);
+    scoreFilter.addEventListener('change', applyFilters);
+    brandFilter.addEventListener('input', applyFilters);
+
+    resetBtn.addEventListener('click', () => {
+        categoryFilter.value = '';
+        productFilter.value = '';
+        yearFilter.value = '';
+        scoreFilter.value = '';
+        brandFilter.value = '';
+        updateProductFilter();
+        applyFilters();
+    });
+
+    applyFilters();
+</script>
+
+</body>
+</html>
