@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'FraudKick - 消費者保護平台',
-  description: '舉報詐騙、共同保護消費者',
+  title: '伏Kick - 香港首個消費資料庫',
+  description: '',
 };
 
 export default function RootLayout({
