@@ -1282,12 +1282,12 @@ export default function HomePage() {
                   </div>
 
                   <div className="filter-group">
-                    <label>💭 報料者想要</label>
+                    <label>💭 Kick 完又點</label>
                     <select
                       value={selectedReporterNeeds}
                       onChange={(e) => setSelectedReporterNeeds(e.target.value)}
                     >
-                      <option value="">全部</option>
+                      <option value="Kick 完又點">全部</option>
                       <option value="搵同路中伏友">搵同路中伏友</option>
                       <option value="商家回應">商家回應</option>
                       <option value="搵專業人士">搵專業人士</option>
@@ -1707,35 +1707,30 @@ export default function HomePage() {
         </section>
 
         {/* ===== 最底 CTA ===== */}
-        <div className="final-cta">
-          <h2>你嘅報料可以改變香港</h2>
-          <p>每一個報料都係真實故事，每一個故事都保護下一個消費者。</p>
-          <div className="buttons">
-            <a
-              href="https://docs.google.com/forms/d/1iaRTo26gA1n08lJyXj_o-EK4Sv8BkY16h_lJv1e2NjU/prefill"
-              className="btn btn-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              🧊 準備好報料
-            </a>
-            <a
-              href="https://docs.google.com/spreadsheets/d/1vNjD8K9lNJh7SXzQkS7L-P02xLrKJSYQ6XfL27_3L7U/edit?usp=sharing"
-              className="btn btn-secondary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              👀 花生友隨便睇睇
-            </a>
-          </div>
-        </div>
+<div className="final-cta">
+  <h2>你嘅報料可以改變香港</h2>
+  <p>每一個報料都係真實故事，每一個故事都保護下一個消費者。</p>
+  <div className="buttons">
+    <a
+      href="https://docs.google.com/forms/d/1iaRTo26gA1n08lJyXj_o-EK4Sv8BkY16h_lJv1e2NjU/prefill"
+      className="btn btn-primary"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      🧊 準備好報料
+    </a>
+    <Link href="/report" className="btn btn-secondary">
+      👀 花生友隨便睇睇
+    </Link>
+  </div>
+</div>
 
-        <footer>
-          <p>🛡️ 伏Kick - 香港首個消費資料庫</p>
-          <p>隱私優先 | 用戶至上 | 社區驅動</p>
-          <p>遵守香港《個人資料（私隱）條例》</p>
-        </footer>
-      </div>
+<footer>
+  <p>伏Kick - 香港首個消費資料庫</p>
+  <p>隱私優先 | 用戶至上 | 社區驅動</p>
+  <p>遵守香港《個人資料（私隱）條例》</p>
+</footer>
+</div>
 
       {/* ===== MODAL ===== */}
       {showModal && (
@@ -1756,3 +1751,4 @@ export default function HomePage() {
     </>
   );
 }
+
