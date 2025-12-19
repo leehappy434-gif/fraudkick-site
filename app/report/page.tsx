@@ -22,6 +22,7 @@ type Report = {
   hasProof: boolean;
   details?: string;
   images?: string[];
+  merchantResponse?: string; // 新增：商家回覆
 };
 
 const allReports: Report[] = [
@@ -33,7 +34,7 @@ const allReports: Report[] = [
     area: '銅鑼灣',
     time: '10 分鐘前',
     brand: 'ABC 美容中心',
-    status: '待跟進',
+    status: '商家回覆',
     summary: '今日去銅鑼灣ABC美容中心試做療程，職員一開始話試做價$288，做完後話要加多$1500清潔費，仲要hard sell買$8000套餐，最後埋單$2000幾，完全冇事先講清楚！',
     hugs: 23,
     sameVictims: 8,
@@ -42,7 +43,8 @@ const allReports: Report[] = [
     reporterNeeds: '搵同路中伏友',
     hasProof: true,
     details: '今日下晝2點去銅鑼灣ABC美容中心，諗住試做$288 facial。做完之後，職員話面部污垢太多，要加$1500深層清潔費。跟住兩個sales圍住我hard sell，話買$8000療程就可以豁免今次費用。最後被迫碌卡$2000，冇單冇收據。\n\n我有錄音證明職員hard sell過程，同埋碌卡記錄。',
-    images: ['/sample-receipt.jpg', '/sample-conversation.jpg']
+    images: ['/sample-receipt.jpg', '/sample-conversation.jpg'],
+    merchantResponse: 'ABC美容中心回覆：感謝客人嘅意見。我哋已經即時檢討相關員工嘅培訓流程，並會為客人安排退款處理。'
   },
   {
     id: 2,
@@ -52,7 +54,7 @@ const allReports: Report[] = [
     area: '尖沙咀',
     time: '30 分鐘前',
     brand: '123 餐廳',
-    status: '已記錄',
+    status: '消委會',
     summary: '生日去尖沙咀123餐廳食飯，叫咗隻龍蝦話1.5斤，上枱明顯細隻，問職員仲話「煮完會縮水」。埋單計數仲要收多$100「切餅費」，完全冇事先講！',
     hugs: 45,
     sameVictims: 12,
@@ -71,7 +73,7 @@ const allReports: Report[] = [
     area: '線上',
     time: '1 小時前',
     brand: 'XYZ 網店',
-    status: '處理中',
+    status: '商家回覆',
     summary: '網購一件$1200外套，收到貨完全係另一款，質料差好多。要求退款，客服拖足兩星期都未處理，而家直頭唔覆訊息！',
     hugs: 67,
     sameVictims: 21,
@@ -80,7 +82,8 @@ const allReports: Report[] = [
     reporterNeeds: '搵同路中伏友',
     hasProof: true,
     details: '11月30號喺XYZ網店買咗件$1200羽絨外套，網站顯示係90%白鴨絨。12月5號收到貨，件衫薄到似風褸，標籤寫50%聚酯纖維。即日要求退款，客服話3-5個工作天處理。等到今日已經兩星期，email、IG、WhatsApp全部唔覆。\n\n我有網站截圖、對話紀錄、收貨相片。',
-    images: ['/sample-jacket-1.jpg', '/sample-jacket-2.jpg', '/sample-chat.jpg']
+    images: ['/sample-jacket-1.jpg', '/sample-jacket-2.jpg', '/sample-chat.jpg'],
+    merchantResponse: 'XYZ網店回覆：我哋已經為客人安排全額退款，並會加強品質檢查流程。'
   },
   {
     id: 4,
@@ -90,7 +93,7 @@ const allReports: Report[] = [
     area: '線上',
     time: '2 小時前',
     brand: '某品牌',
-    status: '已記錄',
+    status: '網民分享',
     summary: '買咗部$3000家用美容儀，用咗一個月就失靈，聯絡客服話要寄回原廠檢查，但運費要自付$500，仲話人為損壞唔保養！',
     hugs: 89,
     sameVictims: 15,
@@ -108,7 +111,7 @@ const allReports: Report[] = [
     area: '旺角',
     time: '昨日',
     brand: 'LLL 健身中心',
-    status: '待跟進',
+    status: '網民分享',
     summary: '健身會籍完咗，但信用卡繼續被扣錢，問職員話合約有自動續約條款，但簽約時完全冇提過，而家要賠3個月月費先可以取消！',
     hugs: 102,
     sameVictims: 34,
@@ -127,7 +130,7 @@ const allReports: Report[] = [
     area: '觀塘',
     time: '2日前',
     brand: 'MMM 美容院',
-    status: '已回應',
+    status: '商家回覆',
     summary: '買咗$5000瘦身療程，做足10次完全冇效果，要求退款，商家話「個人體質問題」拒絕退錢，仲話要加錢做加強版先有效！',
     hugs: 56,
     sameVictims: 9,
@@ -135,7 +138,8 @@ const allReports: Report[] = [
     consumptionType: '服務',
     reporterNeeds: '搵專業人士',
     hasProof: true,
-    details: '9月買咗MMM美容院$5000「10次瘦身療程」，sales保證做10次減到10cm腰圍。做足10次後，腰圍完全冇變。要求退款，經理話「個人體質問題」，唔關療程事，仲sell我加$3000做「加強版」。有錄音證明sales當初嘅保證。\n\n我有療程單據、度腰圍紀錄、錄音檔。'
+    details: '9月買咗MMM美容院$5000「10次瘦身療程」，sales保證做10次減到10cm腰圍。做足10次後，腰圍完全冇變。要求退款，經理話「個人體質問題」，唔關療程事，仲sell我加$3000做「加強版」。有錄音證明sales當初嘅保證。\n\n我有療程單據、度腰圍紀錄、錄音檔。',
+    merchantResponse: 'MMM美容院回覆：我哋已經安排專業顧問跟進，並會為客人安排合適嘅跟進方案。'
   }
 ];
 
@@ -354,14 +358,61 @@ export default function ReportPage() {
     alert('已加入同路中伏友！其他受害者可以聯絡你');
   };
 
-  // 打開商家回應表單
+  // 打開商家回覆表單
   const openMerchantResponseForm = () => {
-    window.open('https://forms.gle/XqMGUmGpDFzyCXF2A', '_blank');
+    window.open('https://forms.gle/pGXmYh2TcRQngmq16', '_blank');
+  };
+
+  // 處理分享功能
+  const handleShare = () => {
+    if (selectedReport) {
+      // 創建分享連結
+      const shareText = `睇下呢個報料！「${selectedReport.title}」\n\n${selectedReport.summary}\n\n`;
+      const shareUrl = window.location.href;
+      
+      // 嘗試使用 Web Share API（在支援的裝置上）
+      if (navigator.share) {
+        navigator.share({
+          title: `伏Kick報料：${selectedReport.title}`,
+          text: shareText,
+          url: shareUrl,
+        })
+        .then(() => console.log('分享成功'))
+        .catch((error) => {
+          console.log('分享失敗:', error);
+          // 如果 Web Share API 失敗，使用複製連結的方式
+          copyToClipboard(shareText + shareUrl);
+        });
+      } else {
+        // 如果不支援 Web Share API，使用複製連結的方式
+        copyToClipboard(shareText + shareUrl);
+      }
+    }
+  };
+
+  // 複製到剪貼簿
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        alert('連結已複製到剪貼簿！你可以貼上分享俾朋友。');
+      })
+      .catch(err => {
+        console.error('複製失敗:', err);
+        alert('無法複製連結，請手動複製網址。');
+      });
   };
 
   // 回到頂部
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 點擊狀態標籤處理
+  const handleStatusClick = (e: React.MouseEvent, status: string) => {
+    e.stopPropagation();
+    if (status === '商家回覆') {
+      openMerchantResponseForm();
+    }
   };
 
   return (
@@ -666,24 +717,19 @@ export default function ReportPage() {
           transform: scale(1.05);
         }
 
-        .status-待跟進 {
-          background: #fef3c7;
-          color: #92400e;
+        .status-商家回覆 {
+          background: #ede9fe;
+          color: #5b21b6;
         }
 
-        .status-已記錄 {
+        .status-消委會 {
           background: #d1fae5;
           color: #065f46;
         }
 
-        .status-處理中 {
-          background: #dbeafe;
-          color: #1d4ed8;
-        }
-
-        .status-已回應 {
-          background: #ede9fe;
-          color: #5b21b6;
+        .status-網民分享 {
+          background: #fef3c7;
+          color: #92400e;
         }
 
         /* ===== Modal 詳情 ===== */
@@ -842,6 +888,36 @@ export default function ReportPage() {
           padding: 20px;
           color: #9ca3af;
           font-size: 0.9em;
+        }
+
+        /* 商家回覆區域 */
+        .merchant-response {
+          margin: 20px 0;
+          background: #f0fdf4;
+          border-radius: 12px;
+          border: 1px solid #bbf7d0;
+          padding: 20px;
+        }
+
+        .merchant-response h4 {
+          margin: 0 0 12px 0;
+          color: #166534;
+          font-size: 1em;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .response-content {
+          color: #374151;
+          line-height: 1.7;
+          white-space: pre-line;
+          font-size: 0.95em;
+          padding: 12px;
+          background: white;
+          border-radius: 8px;
+          border: 1px solid #dcfce7;
         }
 
         /* ===== 按鈕樣式 ===== */
@@ -1093,7 +1169,7 @@ export default function ReportPage() {
               </div>
 
               <div className="filter-group">
-                <label>💭 報料者想要</label>
+                <label>💭 Kick 完又點？</label>
                 <select
                   value={selectedReporterNeeds}
                   onChange={(e) => setSelectedReporterNeeds(e.target.value)}
@@ -1108,16 +1184,15 @@ export default function ReportPage() {
               </div>
 
               <div className="filter-group">
-                <label>📊 報料狀態</label>
+                <label>📊 其他</label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                 >
                   <option value="">全部</option>
-                  <option value="待跟進">待跟進</option>
-                  <option value="已記錄">已記錄</option>
-                  <option value="處理中">處理中</option>
-                  <option value="已回應">已回應</option>
+                  <option value="商家回覆">商家回覆</option>
+                  <option value="消委會">消委會</option>
+                  <option value="網民分享">網民分享 (from 各大社交網站，群組，公開post)</option>
                 </select>
               </div>
 
@@ -1267,7 +1342,11 @@ export default function ReportPage() {
                         {report.comments} 則留言
                       </div>
                     </div>
-                    <div className={`report-status status-${report.status}`}>
+                    <div 
+                      className={`report-status status-${report.status}`}
+                      onClick={(e) => handleStatusClick(e, report.status)}
+                    >
+                      {report.status === '網民分享' ? '👥 ' : report.status === '消委會' ? '🛡️ ' : ''}
                       {report.status}
                     </div>
                   </div>
@@ -1335,6 +1414,16 @@ export default function ReportPage() {
                 )}
               </div>
 
+              {/* 商家回覆區域 */}
+              {selectedReport.merchantResponse && (
+                <div className="merchant-response">
+                  <h4>💼 商家回覆</h4>
+                  <div className="response-content">
+                    {selectedReport.merchantResponse}
+                  </div>
+                </div>
+              )}
+
               <div className="modal-details">
                 <div className="detail-item">
                   <div className="detail-label">🛍️ 消費類別：</div>
@@ -1345,7 +1434,7 @@ export default function ReportPage() {
                   </div>
                 </div>
                 <div className="detail-item">
-                  <div className="detail-label">💭 想要：</div>
+                  <div className="detail-label">💭 Kick 完又點？：</div>
                   <div className="detail-value">
                     <span className="meta-tag" style={{ background: '#fee2e2', color: '#b91c1c' }}>
                       {selectedReport.reporterNeeds}
@@ -1365,9 +1454,24 @@ export default function ReportPage() {
                 <div className="detail-item">
                   <div className="detail-label">📊 報料狀態：</div>
                   <div className="detail-value">
-                    <span className={`report-status status-${selectedReport.status}`} style={{ display: 'inline-block' }}>
+                    <span 
+                      className={`report-status status-${selectedReport.status}`} 
+                      style={{ display: 'inline-block' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (selectedReport.status === '商家回覆') {
+                          openMerchantResponseForm();
+                        }
+                      }}
+                    >
+                      {selectedReport.status === '網民分享' ? '👥 ' : selectedReport.status === '消委會' ? '🛡️ ' : ''}
                       {selectedReport.status}
                     </span>
+                    {selectedReport.status === '網民分享' && (
+                      <div style={{ fontSize: '0.8em', color: '#6b7280', marginTop: '4px' }}>
+                        (from 各大社交網站，群組，公開post)
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1419,16 +1523,6 @@ export default function ReportPage() {
                     👥 同路中伏友 ({selectedReport.sameVictims})
                   </button>
                   <button
-                    onClick={openMerchantResponseForm}
-                    className="btn"
-                    style={{
-                      padding: '8px 20px',
-                      fontSize: '0.9em'
-                    }}
-                  >
-                    💼 商家回應
-                  </button>
-                  <button
                     onClick={() => {
                       alert('留言功能即將推出！');
                     }}
@@ -1439,6 +1533,19 @@ export default function ReportPage() {
                     }}
                   >
                     加入討論
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="btn"
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: '0.9em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    ↗️ 分享
                   </button>
                 </div>
               </div>
