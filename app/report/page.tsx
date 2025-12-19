@@ -22,7 +22,16 @@ type Report = {
   hasProof: boolean;
   details?: string;
   images?: string[];
-  merchantResponse?: string; // 新增：商家回覆
+  merchantResponse?: string;
+};
+
+type Comment = {
+  id: number;
+  reportId: number;
+  user: string;
+  content: string;
+  time: string;
+  likes: number;
 };
 
 const allReports: Report[] = [
@@ -143,6 +152,16 @@ const allReports: Report[] = [
   }
 ];
 
+// 模擬留言數據
+const initialComments: Comment[] = [
+  { id: 1, reportId: 1, user: 'Kick友A', content: '我都中過伏！同一間ABC美容中心，手法一模一樣！', time: '5分鐘前', likes: 3 },
+  { id: 2, reportId: 1, user: '中伏過來人', content: '建議直接去消委會報料，呢啲美容院好狼死！', time: '15分鐘前', likes: 7 },
+  { id: 3, reportId: 2, user: '食家B', content: '呢間123餐廳出名呃秤，唔好再去！', time: '25分鐘前', likes: 5 },
+  { id: 4, reportId: 3, user: '網購達人', content: 'XYZ網店我買過嘢，真係好差，客服完全唔理人！', time: '35分鐘前', likes: 12 },
+  { id: 5, reportId: 3, user: '消費者C', content: '可以試下用信用卡dispute，有機會攞返錢！', time: '45分鐘前', likes: 8 },
+  { id: 6, reportId: 5, user: '健身友D', content: 'LLL健身中心我都中過招！自動續約真係好陰濕！', time: '55分鐘前', likes: 15 },
+];
+
 export default function ReportPage() {
   // 搜索和篩選狀態
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,6 +185,11 @@ export default function ReportPage() {
   // 返回頂部按鈕狀態
   const [showBackToTop, setShowBackToTop] = useState(false);
 
+  // 留言相關狀態
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [newComment, setNewComment] = useState('');
+
   // 過濾後的報料
   const [filteredReports, setFilteredReports] = useState<Report[]>(allReports);
 
@@ -173,6 +197,7 @@ export default function ReportPage() {
   const openDetails = (report: Report) => {
     setSelectedReport(report);
     setShowDetails(true);
+    setShowComments(false); // 重置留言展開狀態
     document.body.style.overflow = 'hidden';
   };
 
@@ -180,6 +205,7 @@ export default function ReportPage() {
   const closeDetails = () => {
     setShowDetails(false);
     setSelectedReport(null);
+    setShowComments(false); // 關閉留言區
     document.body.style.overflow = 'auto';
   };
 
@@ -196,21 +222,17 @@ export default function ReportPage() {
     setSelectedBrand('');
   };
 
-  // 改進的搜尋邏輯
+  // 搜尋邏輯
   const searchMatches = (query: string, report: Report): boolean => {
     if (!query) return true;
 
     const q = query.toLowerCase().trim();
 
-    // 精確匹配得分最高
     if (report.title.toLowerCase() === q) return true;
     if (report.brand.toLowerCase() === q) return true;
-
-    // 開頭匹配次高
     if (report.title.toLowerCase().startsWith(q)) return true;
     if (report.brand.toLowerCase().startsWith(q)) return true;
 
-    // 包含匹配
     return (
       report.title.toLowerCase().includes(q) ||
       report.brand.toLowerCase().includes(q) ||
@@ -223,52 +245,42 @@ export default function ReportPage() {
   useEffect(() => {
     let filtered = [...allReports];
 
-    // 搜尋過濾
     if (searchQuery) {
       filtered = filtered.filter(report => searchMatches(searchQuery, report));
     }
 
-    // 類別過濾
     if (selectedType) {
       filtered = filtered.filter(report => report.type === selectedType);
     }
 
-    // 行業過濾
     if (selectedCategory) {
       filtered = filtered.filter(report => report.category === selectedCategory);
     }
 
-    // 地區過濾
     if (selectedArea) {
       filtered = filtered.filter(report => report.area === selectedArea);
     }
 
-    // 消費類別過濾
     if (selectedConsumptionType) {
       filtered = filtered.filter(report => report.consumptionType === selectedConsumptionType);
     }
 
-    // 報料者需求過濾
     if (selectedReporterNeeds) {
       filtered = filtered.filter(report => report.reporterNeeds === selectedReporterNeeds);
     }
 
-    // 狀態過濾
     if (selectedStatus) {
       filtered = filtered.filter(report => report.status === selectedStatus);
     }
 
-    // 有証明過濾
     if (hasProofFilter) {
       filtered = filtered.filter(report => report.hasProof);
     }
 
-    // 品牌過濾
     if (selectedBrand) {
       filtered = filtered.filter(report => report.brand === selectedBrand);
     }
 
-    // 排序
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -327,79 +339,88 @@ export default function ReportPage() {
   };
 
   // 處理抱抱功能
-  const handleHug = (id: number) => {
-    const updatedReports = allReports.map(report => {
-      if (report.id === id) {
-        return { ...report, hugs: report.hugs + 1 };
+  const handleHug = (id: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    const report = allReports.find(r => r.id === id);
+    if (report) {
+      report.hugs += 1;
+      
+      if (selectedReport && selectedReport.id === id) {
+        setSelectedReport(prev => prev ? { ...prev, hugs: prev.hugs + 1 } : null);
       }
-      return report;
-    });
-
-    if (selectedReport && selectedReport.id === id) {
-      setSelectedReport(prev => prev ? { ...prev, hugs: prev.hugs + 1 } : null);
+      
+      // 更新 filteredReports
+      setFilteredReports(prev => 
+        prev.map(r => r.id === id ? { ...r, hugs: r.hugs + 1 } : r)
+      );
     }
-
-    alert('抱抱已送出！感謝支持');
   };
 
   // 處理同路中伏友功能
-  const handleSameVictims = (id: number) => {
-    const updatedReports = allReports.map(report => {
-      if (report.id === id) {
-        return { ...report, sameVictims: report.sameVictims + 1 };
+  const handleSameVictims = (id: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    const report = allReports.find(r => r.id === id);
+    if (report) {
+      report.sameVictims += 1;
+      
+      if (selectedReport && selectedReport.id === id) {
+        setSelectedReport(prev => prev ? { ...prev, sameVictims: prev.sameVictims + 1 } : null);
       }
-      return report;
-    });
-
-    if (selectedReport && selectedReport.id === id) {
-      setSelectedReport(prev => prev ? { ...prev, sameVictims: prev.sameVictims + 1 } : null);
+      
+      // 更新 filteredReports
+      setFilteredReports(prev => 
+        prev.map(r => r.id === id ? { ...r, sameVictims: r.sameVictims + 1 } : r)
+      );
     }
+  };
 
-    alert('已加入同路中伏友！其他受害者可以聯絡你');
+  // 處理留言點讚
+  const handleCommentLike = (commentId: number) => {
+    setComments(prev => 
+      prev.map(comment => 
+        comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment
+      )
+    );
+  };
+
+  // 提交新留言
+  const handleSubmitComment = () => {
+    if (!newComment.trim() || !selectedReport) return;
+    
+    const newCommentObj: Comment = {
+      id: Date.now(),
+      reportId: selectedReport.id,
+      user: 'Kick友',
+      content: newComment,
+      time: '剛剛',
+      likes: 0
+    };
+    
+    setComments(prev => [newCommentObj, ...prev]);
+    
+    // 更新報料的留言數量
+    const report = allReports.find(r => r.id === selectedReport.id);
+    if (report) {
+      report.comments += 1;
+      
+      if (selectedReport) {
+        setSelectedReport(prev => prev ? { ...prev, comments: prev.comments + 1 } : null);
+      }
+      
+      // 更新 filteredReports
+      setFilteredReports(prev => 
+        prev.map(r => r.id === selectedReport.id ? { ...r, comments: r.comments + 1 } : r)
+      );
+    }
+    
+    setNewComment('');
   };
 
   // 打開商家回覆表單
   const openMerchantResponseForm = () => {
     window.open('https://forms.gle/pGXmYh2TcRQngmq16', '_blank');
-  };
-
-  // 處理分享功能
-  const handleShare = () => {
-    if (selectedReport) {
-      // 創建分享連結
-      const shareText = `睇下呢個報料！「${selectedReport.title}」\n\n${selectedReport.summary}\n\n`;
-      const shareUrl = window.location.href;
-      
-      // 嘗試使用 Web Share API（在支援的裝置上）
-      if (navigator.share) {
-        navigator.share({
-          title: `伏Kick報料：${selectedReport.title}`,
-          text: shareText,
-          url: shareUrl,
-        })
-        .then(() => console.log('分享成功'))
-        .catch((error) => {
-          console.log('分享失敗:', error);
-          // 如果 Web Share API 失敗，使用複製連結的方式
-          copyToClipboard(shareText + shareUrl);
-        });
-      } else {
-        // 如果不支援 Web Share API，使用複製連結的方式
-        copyToClipboard(shareText + shareUrl);
-      }
-    }
-  };
-
-  // 複製到剪貼簿
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        alert('連結已複製到剪貼簿！你可以貼上分享俾朋友。');
-      })
-      .catch(err => {
-        console.error('複製失敗:', err);
-        alert('無法複製連結，請手動複製網址。');
-      });
   };
 
   // 回到頂部
@@ -413,6 +434,11 @@ export default function ReportPage() {
     if (status === '商家回覆') {
       openMerchantResponseForm();
     }
+  };
+
+  // 獲取報料的留言
+  const getReportComments = (reportId: number) => {
+    return comments.filter(comment => comment.reportId === reportId);
   };
 
   return (
@@ -960,9 +986,17 @@ export default function ReportPage() {
           .media-grid {
             grid-template-columns: repeat(2, 1fr);
           }
+          .kick-friend-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .kick-friend-action {
+            align-self: flex-end;
+          }
         }
 
-        /* 回到頂部按鈕樣式 - 同主頁一樣 */
+        /* 回到頂部按鈕樣式 */
         .back-to-top-btn {
           position: fixed;
           bottom: 30px;
@@ -1004,6 +1038,203 @@ export default function ReportPage() {
             right: 20px;
             font-size: 20px;
           }
+        }
+
+        /* 留言區樣式 */
+        .comments-section {
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .comments-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .comments-title {
+          font-size: 1.1em;
+          font-weight: 700;
+          color: #fb7185;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .comments-count {
+          background: #fee2e2;
+          color: #b91c1c;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 0.8em;
+          font-weight: 600;
+        }
+
+        .comments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 20px;
+          max-height: 300px;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+
+        .comment-item {
+          background: white;
+          border-radius: 12px;
+          padding: 16px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .comment-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .comment-user {
+          font-weight: 600;
+          color: #111827;
+          font-size: 0.95em;
+        }
+
+        .comment-time {
+          font-size: 0.8em;
+          color: #9ca3af;
+        }
+
+        .comment-content {
+          color: #374151;
+          line-height: 1.6;
+          font-size: 0.95em;
+          margin-bottom: 12px;
+        }
+
+        .comment-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .comment-likes {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.85em;
+          color: #6b7280;
+          cursor: pointer;
+        }
+
+        .comment-like-btn {
+          background: none;
+          border: none;
+          font-size: 16px;
+          cursor: pointer;
+          color: #9ca3af;
+          transition: color 0.2s;
+        }
+
+        .comment-like-btn:hover {
+          color: #fb7185;
+        }
+
+        .comment-form {
+          background: white;
+          border-radius: 12px;
+          padding: 16px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .comment-textarea {
+          width: 100%;
+          min-height: 80px;
+          padding: 12px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 0.95em;
+          font-family: inherit;
+          resize: vertical;
+          margin-bottom: 12px;
+        }
+
+        .comment-textarea:focus {
+          outline: none;
+          border-color: #fb7185;
+          box-shadow: 0 0 0 2px #ffe4e6;
+        }
+
+        .comment-submit-btn {
+          background: #fb7185;
+          color: white;
+          border: none;
+          border-radius: 999px;
+          padding: 10px 24px;
+          font-size: 0.95em;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .comment-submit-btn:hover {
+          background: #f97373;
+          transform: translateY(-1px);
+        }
+
+        /* KICK友互動按鈕 */
+        .kick-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 16px;
+        }
+
+        .kick-action-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-radius: 999px;
+          font-size: 0.9em;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          transition: all 0.2s;
+        }
+
+        .hug-btn {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        .hug-btn:hover {
+          background: #fecaca;
+          transform: translateY(-1px);
+        }
+
+        .victims-btn {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        .victims-btn:hover {
+          background: #fde68a;
+          transform: translateY(-1px);
+        }
+
+        .comments-btn {
+          background: #dbeafe;
+          color: #1d4ed8;
+        }
+
+        .comments-btn:hover {
+          background: #bfdbfe;
+          transform: translateY(-1px);
         }
       `}</style>
 
@@ -1424,77 +1655,196 @@ export default function ReportPage() {
                 </div>
               )}
 
+              {/* KICK友互動與留言預覽 */}
               <div className="modal-details">
-                <div className="detail-item">
-                  <div className="detail-label">🛍️ 消費類別：</div>
-                  <div className="detail-value">
-                    <span className="meta-tag" style={{ background: '#dbeafe', color: '#1d4ed8' }}>
-                      {selectedReport.consumptionType}
-                    </span>
+
+                {/* 留言預覽區域 */}
+                {!showComments && getReportComments(selectedReport.id).length > 0 && (
+                  <div style={{ marginTop: '20px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginBottom: '12px'
+                    }}>
+                      <h4 style={{ margin: 0, color: '#fb7185', fontSize: '1em' }}>
+                        💬 最新留言
+                      </h4>
+                      <button
+                        onClick={() => setShowComments(true)}
+                        className="btn"
+                        style={{ 
+                          padding: '6px 12px',
+                          fontSize: '0.8em'
+                        }}
+                      >
+                        查看更多留言 →
+                      </button>
+                    </div>
+                    
+                    <div style={{ 
+                      background: 'white', 
+                      borderRadius: '8px', 
+                      padding: '12px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {getReportComments(selectedReport.id)
+                        .slice(0, 2)
+                        .map(comment => (
+                          <div key={comment.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              fontSize: '0.85em'
+                            }}>
+                              <strong style={{ color: '#111827' }}>{comment.user}</strong>
+                              <span style={{ color: '#9ca3af' }}>{comment.time}</span>
+                            </div>
+                            <p style={{ 
+                              margin: '6px 0 0', 
+                              fontSize: '0.9em',
+                              color: '#374151'
+                            }}>
+                              {comment.content}
+                            </p>
+                          </div>
+                        ))}
+                      {getReportComments(selectedReport.id).length > 2 && (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          color: '#6b7280',
+                          fontSize: '0.8em',
+                          marginTop: '8px'
+                        }}>
+                          還有 {getReportComments(selectedReport.id).length - 2} 則留言...
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="detail-item">
-                  <div className="detail-label">💭 Kick 完又點？：</div>
-                  <div className="detail-value">
-                    <span className="meta-tag" style={{ background: '#fee2e2', color: '#b91c1c' }}>
-                      {selectedReport.reporterNeeds}
-                    </span>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <div className="detail-label">👥 KICK友表示：</div>
-                  <div className="detail-value">
-                    <span style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap' }}>
-                      <span>♥ {selectedReport.hugs} 抱抱</span>
-                      <span>👥 {selectedReport.sameVictims} 同路中伏友</span>
-                      <span>💬 {selectedReport.comments} 則留言</span>
-                    </span>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <div className="detail-label">📊 報料狀態：</div>
-                  <div className="detail-value">
-                    <span 
-                      className={`report-status status-${selectedReport.status}`} 
-                      style={{ display: 'inline-block' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (selectedReport.status === '商家回覆') {
-                          openMerchantResponseForm();
-                        }
-                      }}
-                    >
-                      {selectedReport.status === '網民分享' ? '👥 ' : selectedReport.status === '消委會' ? '🛡️ ' : ''}
-                      {selectedReport.status}
-                    </span>
-                    {selectedReport.status === '網民分享' && (
-                      <div style={{ fontSize: '0.8em', color: '#6b7280', marginTop: '4px' }}>
-                        (from 各大社交網站，群組，公開post)
-                      </div>
-                    )}
+                )}
+
+                {/* 報料狀態 */}
+                <div style={{ marginTop: '20px' }}>
+                  <div className="detail-item">
+                    <div className="detail-label">📊 報料狀態</div>
+                    <div className="detail-value">
+                      <span 
+                        className={`report-status status-${selectedReport.status}`} 
+                        style={{ display: 'inline-block' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedReport.status === '商家回覆') {
+                            openMerchantResponseForm();
+                          }
+                        }}
+                      >
+                        {selectedReport.status === '網民分享' ? '👥 ' : selectedReport.status === '消委會' ? '🛡️ ' : ''}
+                        {selectedReport.status}
+                      </span>
+                      {selectedReport.status === '網民分享' && (
+                        <div style={{ fontSize: '0.8em', color: '#6b7280', marginTop: '4px' }}>
+                          (from 各大社交網站，群組，公開post)
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* 留言區 */}
+              {showComments && (
+                <div className="comments-section">
+                  <div className="comments-header">
+                    <div className="comments-title">
+                      留言區
+                      <span className="comments-count">{selectedReport.comments} 則留言</span>
+                    </div>
+                    <button
+                      onClick={() => setShowComments(false)}
+                      className="btn"
+                      style={{ 
+                        padding: '6px 12px',
+                        fontSize: '0.8em'
+                      }}
+                    >
+                      收起留言 ↑
+                    </button>
+                  </div>
+
+                  {/* 留言列表 */}
+                  <div className="comments-list">
+                    {getReportComments(selectedReport.id).length > 0 ? (
+                      getReportComments(selectedReport.id).map((comment) => (
+                        <div key={comment.id} className="comment-item">
+                          <div className="comment-header">
+                            <div className="comment-user">{comment.user}</div>
+                            <div className="comment-time">{comment.time}</div>
+                          </div>
+                          <div className="comment-content">{comment.content}</div>
+                          <div className="comment-footer">
+                            <button
+                              className="comment-like-btn"
+                              onClick={() => handleCommentLike(comment.id)}
+                              title="讚好"
+                            >
+                              👍
+                            </button>
+                            <div className="comment-likes">
+                              {comment.likes} 個讚好
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ 
+                        textAlign: 'center', 
+                        padding: '20px', 
+                        color: '#6b7280',
+                        fontSize: '0.9em'
+                      }}>
+                        暫時未有留言，成為第一個留言嘅Kick友！
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 留言輸入框 */}
+                  <div className="comment-form">
+                    <textarea
+                      className="comment-textarea"
+                      placeholder="分享你的想法或經驗..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      maxLength={500}
+                    />
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ fontSize: '0.8em', color: '#6b7280' }}>
+                        {newComment.length}/500 字
+                      </div>
+                      <button
+                        className="comment-submit-btn"
+                        onClick={handleSubmitComment}
+                        disabled={!newComment.trim()}
+                      >
+                        📤 發表留言
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 marginTop: '24px',
                 paddingTop: '16px',
                 borderTop: '1px solid #e5e7eb',
                 flexWrap: 'wrap',
                 gap: '10px'
               }}>
-                <button
-                  onClick={closeDetails}
-                  className="btn"
-                  style={{
-                    padding: '8px 20px',
-                    fontSize: '0.9em'
-                  }}
-                >
-                  關閉詳情
-                </button>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button
                     onClick={() => handleHug(selectedReport.id)}
@@ -1523,29 +1873,14 @@ export default function ReportPage() {
                     👥 同路中伏友 ({selectedReport.sameVictims})
                   </button>
                   <button
-                    onClick={() => {
-                      alert('留言功能即將推出！');
-                    }}
+                    onClick={() => setShowComments(!showComments)}
                     className="btn"
                     style={{
                       padding: '8px 20px',
                       fontSize: '0.9em'
                     }}
                   >
-                    加入討論
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="btn"
-                    style={{
-                      padding: '8px 20px',
-                      fontSize: '0.9em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    ↗️ 分享
+                    {showComments ? '收起留言' : '💬 留言'} ({selectedReport.comments})
                   </button>
                 </div>
               </div>
