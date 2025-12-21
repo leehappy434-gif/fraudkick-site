@@ -418,6 +418,41 @@ export default function ReportPage() {
     setNewComment('');
   };
 
+  // 處理分享功能
+  const handleShare = (report: Report) => {
+    const shareText = `${report.title} - 伏Kick報料`;
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+      // 使用 Web Share API (支援手機)
+      navigator.share({
+        title: '伏Kick報料',
+        text: shareText,
+        url: shareUrl,
+      }).catch(err => {
+        console.log('分享取消或出錯:', err);
+      });
+    } else {
+      // 使用複製到剪貼簿 (桌面端)
+      const textToCopy = `${shareText}\n${shareUrl}`;
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          alert('報料連結已複製到剪貼簿！📋\n可以貼上分享俾朋友啦~');
+        })
+        .catch(err => {
+          console.error('複製失敗:', err);
+          // 降級方案
+          const textArea = document.createElement('textarea');
+          textArea.value = textToCopy;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          alert('報料連結已複製到剪貼簿！📋\n可以貼上分享俾朋友啦~');
+        });
+    }
+  };
+
   // 打開商家回覆表單
   const openMerchantResponseForm = () => {
     window.open('https://forms.gle/pGXmYh2TcRQngmq16', '_blank');
@@ -1236,6 +1271,16 @@ export default function ReportPage() {
           background: #bfdbfe;
           transform: translateY(-1px);
         }
+
+        .share-btn {
+          background: #ddd6fe;
+          color: #5b21b6;
+        }
+
+        .share-btn:hover {
+          background: #c4b5fd;
+          transform: translateY(-1px);
+        }
       `}</style>
 
       {/* 回到頂部按鈕 */}
@@ -1881,6 +1926,23 @@ export default function ReportPage() {
                     }}
                   >
                     {showComments ? '收起留言' : '💬 留言'} ({selectedReport.comments})
+                  </button>
+                  {/* 新增的分享按鈕 */}
+                  <button
+                    onClick={() => handleShare(selectedReport)}
+                    className="btn share-btn"
+                    style={{
+                      padding: '8px 20px',
+                      fontSize: '0.9em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#f9fafb',
+                      color: '#fb7185',
+                      border: '1px solid rgba(247, 245, 245, 0.92)'
+                    }}
+                  >
+                    🔗 分享
                   </button>
                 </div>
               </div>
